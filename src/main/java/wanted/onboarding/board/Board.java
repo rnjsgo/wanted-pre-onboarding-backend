@@ -15,7 +15,7 @@ import javax.persistence.*;
 public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
     @Column
@@ -24,7 +24,7 @@ public class Board {
     private String content;
 
     @Builder
-    public Board(int id, User user, String title, String content) {
+    public Board(Long id, User user, String title, String content) {
         this.id = id;
         this.user = user;
         this.title = title;
