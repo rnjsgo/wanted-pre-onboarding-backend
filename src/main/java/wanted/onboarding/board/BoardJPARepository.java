@@ -7,6 +7,8 @@ import java.util.Optional;
 
 public interface BoardJPARepository extends JpaRepository<Board, Long> {
     List<Board> findAll();
+
+
     Optional<Board> findById(int id);
 
 }
