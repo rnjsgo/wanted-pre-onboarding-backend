@@ -59,7 +59,7 @@ public class BoardService {
     // 게시물 삭제
     public void deleteBoard(int id , User sessionUser){
         Board findBoard = boardJPARepository.findById(id).orElseThrow(
-                () -> new Exception404("해당 게시물을 찾을 수 없습니다 : "+ id())
+                () -> new Exception404("해당 게시물을 찾을 수 없습니다 : "+ id)
         );
 
         if(!findBoard.getUser().getId().equals(sessionUser.getId()))
