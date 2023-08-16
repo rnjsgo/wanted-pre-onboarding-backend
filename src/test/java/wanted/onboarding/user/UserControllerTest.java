@@ -56,6 +56,58 @@ public class UserControllerTest {
     }
 
     @Test
+    @DisplayName("회원가입 실패 테스트 - 이메일 형식")
+    @Transactional
+    public void joinFailure_test1() throws Exception {
+        // given
+        UserRequest.JoinDTO requestDTO = new UserRequest.JoinDTO();
+        requestDTO.setEmail("rnjsgo");
+        requestDTO.setPassword("12345678");
+        requestDTO.setUsername("권해");
+        String requestBody = om.writeValueAsString(requestDTO);
+
+        // when
+        ResultActions result = mvc.perform(
+                MockMvcRequestBuilders
+                        .post("/join")
+                        .content(requestBody)
+                        .contentType(MediaType.APPLICATION_JSON)
+        );
+        // eye
+        String responseBody = result.andReturn().getResponse().getContentAsString();
+        System.out.println("테스트 : "+responseBody);
+
+        // then
+        result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("false"));
+        result.andExpect(MockMvcResultMatchers.jsonPath("$.error.status").value(400));
+    }
+    @Test
+    @DisplayName("회원가입 실패 테스트 - 비밀번호 형식")
+    @Transactional
+    public void joinFailure_test2() throws Exception {
+        // given
+        UserRequest.JoinDTO requestDTO = new UserRequest.JoinDTO();
+        requestDTO.setEmail("rnjsgo@naver.com");
+        requestDTO.setPassword("1234");
+        requestDTO.setUsername("권해");
+        String requestBody = om.writeValueAsString(requestDTO);
+
+        // when
+        ResultActions result = mvc.perform(
+                MockMvcRequestBuilders
+                        .post("/join")
+                        .content(requestBody)
+                        .contentType(MediaType.APPLICATION_JSON)
+        );
+        // eye
+        String responseBody = result.andReturn().getResponse().getContentAsString();
+        System.out.println("테스트 : "+responseBody);
+
+        // then
+        result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("false"));
+        result.andExpect(MockMvcResultMatchers.jsonPath("$.error.status").value(400));
+    }
+    @Test
     @DisplayName("로그인 테스트")
     @Transactional
     public void login_test() throws Exception {
