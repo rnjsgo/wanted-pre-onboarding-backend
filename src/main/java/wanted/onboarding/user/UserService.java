@@ -1,14 +1,13 @@
 package wanted.onboarding.user;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import wanted.onboarding.errors.Exception.Exception400;
+import wanted.onboarding.errors.Exception.Exception401;
 import wanted.onboarding.errors.Exception.Exception500;
-import wanted.onboarding.security.CustomUserDetails;
 import wanted.onboarding.security.JWTProvider;
 
 import java.util.Optional;
@@ -37,10 +36,10 @@ public class UserService {
 
     @Transactional
     public String login(UserRequest.LoginDTO loginDTO){
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword());
-        CustomUserDetails customUserDetails = (CustomUserDetails) authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-        return jwtProvider.create(customUserDetails.getUser());
+        User user = userJPARepository.findByEmail(loginDTO.getEmail())
+                .filter(it -> passwordEncoder.matches(loginDTO.getPassword(), it.getPassword()))
+                .orElseThrow(() -> new Exception401("회원 정보가 일치하지 않습니다."));
+        return jwtProvider.create(user);
     }
 
 

@@ -4,37 +4,34 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import wanted.onboarding.errors.GlobalExceptionHandler;
+import org.springframework.transaction.annotation.Transactional;
 import wanted.onboarding.security.JWTProvider;
-import wanted.onboarding.security.SecurityConfig;
 
-import static org.mockito.ArgumentMatchers.any;
-
-@Import({
-        SecurityConfig.class,
-        GlobalExceptionHandler.class
-})
-@WebMvcTest(controllers = {UserController.class})
+@AutoConfigureMockMvc
+@SpringBootTest
 public class UserControllerTest {
-    @MockBean
-    private UserService userService;
     @Autowired
     private MockMvc mvc;
     @Autowired
     private ObjectMapper om;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private UserJPARepository userJPARepository;
+
 
     @Test
     @DisplayName("회원가입 테스트")
+    @Transactional
     public void join_test() throws Exception {
         // given
         UserRequest.JoinDTO requestDTO = new UserRequest.JoinDTO();
@@ -60,17 +57,21 @@ public class UserControllerTest {
 
     @Test
     @DisplayName("로그인 테스트")
+    @Transactional
     public void login_test() throws Exception {
         // given
+        String email = "rnjsgo@naver.com";
+        String password = "12345678!";
+        String userName= "권해";
+
+        User user = userJPARepository.save(User.builder().email(email).password(passwordEncoder.encode(password)).username(userName).build());
         UserRequest.LoginDTO loginDTO = new UserRequest.LoginDTO();
-        loginDTO.setEmail("rnjsgo@naver.com");
-        loginDTO.setPassword("12345678");
-        User user = User.builder().id((long)1).build();
+        loginDTO.setEmail(email);
+        loginDTO.setPassword(password);
+
+        String jwt = JWTProvider.create(user);
         String requestBody = om.writeValueAsString(loginDTO);
 
-        // stub
-        String jwt = JWTProvider.create(user);
-        Mockito.when(userService.login(any())).thenReturn(jwt);
 
         // when
         ResultActions result = mvc.perform(
@@ -89,5 +90,42 @@ public class UserControllerTest {
         // then
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("true"));
         Assertions.assertTrue(jwt.startsWith(JWTProvider.TOKEN_PREFIX));
+    }
+
+    @Test
+    @DisplayName("로그인 실패 테스트")
+    @Transactional
+    public void loginFailure_test() throws Exception {
+        // given
+        String email = "rnjsgo@naver.com";
+        String password = "12345678!";
+        String userName= "권해";
+
+        User user = userJPARepository.save(User.builder().email(email).password(passwordEncoder.encode(password)).username(userName).build());
+        UserRequest.LoginDTO loginDTO = new UserRequest.LoginDTO();
+        loginDTO.setEmail(email);
+        loginDTO.setPassword("failureTest");
+
+        String jwt = JWTProvider.create(user);
+        String requestBody = om.writeValueAsString(loginDTO);
+
+
+        // when
+        ResultActions result = mvc.perform(
+                MockMvcRequestBuilders
+                        .post("/login")
+                        .content(requestBody)
+                        .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        // eye
+        String responseBody = result.andReturn().getResponse().getContentAsString();
+        String responseHeader = result.andReturn().getResponse().getHeader(JWTProvider.HEADER);
+        System.out.println("테스트 : "+responseBody);
+        System.out.println("테스트 : "+responseHeader);
+
+        // then
+        result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("false"));
+        result.andExpect(MockMvcResultMatchers.jsonPath("$.error.status").value(401));
     }
 }
