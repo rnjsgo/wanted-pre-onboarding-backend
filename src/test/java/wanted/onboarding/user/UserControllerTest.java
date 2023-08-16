@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -12,13 +13,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
+import wanted.MyRestDoc;
 import wanted.onboarding.security.JWTProvider;
 
+@AutoConfigureRestDocs(uriScheme = "http", uriHost = "localhost", uriPort = 8080)
 @AutoConfigureMockMvc
 @SpringBootTest
-public class UserControllerTest {
+public class UserControllerTest extends MyRestDoc {
     @Autowired
     private MockMvc mvc;
     @Autowired
@@ -53,6 +57,7 @@ public class UserControllerTest {
 
         // then
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("true"));
+        result.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
     @Test
@@ -80,6 +85,7 @@ public class UserControllerTest {
         // then
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("false"));
         result.andExpect(MockMvcResultMatchers.jsonPath("$.error.status").value(400));
+        result.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
     @Test
     @DisplayName("회원가입 실패 테스트 - 비밀번호 형식")
@@ -106,6 +112,7 @@ public class UserControllerTest {
         // then
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("false"));
         result.andExpect(MockMvcResultMatchers.jsonPath("$.error.status").value(400));
+        result.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
     @Test
     @DisplayName("로그인 테스트")
@@ -142,6 +149,7 @@ public class UserControllerTest {
         // then
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("true"));
         Assertions.assertTrue(jwt.startsWith(JWTProvider.TOKEN_PREFIX));
+        result.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
     @Test
@@ -179,5 +187,6 @@ public class UserControllerTest {
         // then
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("false"));
         result.andExpect(MockMvcResultMatchers.jsonPath("$.error.status").value(401));
+        result.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 }

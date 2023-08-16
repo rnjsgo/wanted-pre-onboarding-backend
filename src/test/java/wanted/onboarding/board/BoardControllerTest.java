@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -14,17 +15,19 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
+import wanted.MyRestDoc;
 import wanted.onboarding.user.User;
 import wanted.onboarding.user.UserJPARepository;
 
 import javax.persistence.EntityManager;
 import java.util.Optional;
-
+@AutoConfigureRestDocs(uriScheme = "http", uriHost = "localhost", uriPort = 8080)
 @AutoConfigureMockMvc
 @SpringBootTest
-public class BoardControllerTest {
+public class BoardControllerTest extends MyRestDoc {
     @Autowired
     private MockMvc mvc;
     @Autowired
@@ -89,6 +92,7 @@ public class BoardControllerTest {
 
         //then
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("true"));
+        result.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
     @DisplayName("게시물 목록 조회 테스트 (page)")
@@ -115,6 +119,7 @@ public class BoardControllerTest {
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("true"));
         result.andExpect(MockMvcResultMatchers.jsonPath("$.response[0].title").value("1번 게시물"));
         result.andExpect(MockMvcResultMatchers.jsonPath("$.response[1].title").value("2번 게시물"));
+        result.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
     @DisplayName("게시물 조회 테스트 (id)")
@@ -139,6 +144,7 @@ public class BoardControllerTest {
         //then
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("true"));
         result.andExpect(MockMvcResultMatchers.jsonPath("$.response.title").value("1번 게시물"));
+        result.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
     @WithUserDetails(value = "rnjsgo@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
@@ -172,6 +178,7 @@ public class BoardControllerTest {
         Board updatedBoard = boardJPARepository.findById((long)1).get();
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("true"));
         Assertions.assertThat(updatedBoard.getTitle()).isEqualTo("1번 게시물 제목 수정");
+        result.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
     @WithUserDetails(value = "anonymous@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
@@ -204,6 +211,7 @@ public class BoardControllerTest {
         //then
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("false"));
         result.andExpect(MockMvcResultMatchers.jsonPath("$.error.status").value(403));
+        result.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
     @WithUserDetails(value = "rnjsgo@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
@@ -228,6 +236,7 @@ public class BoardControllerTest {
         Optional<Board> deletedBoard = boardJPARepository.findById(id);
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("true"));
         Assertions.assertThat(deletedBoard).isEmpty();
+        result.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
     @WithUserDetails(value = "anonymous@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
@@ -251,5 +260,6 @@ public class BoardControllerTest {
         //then
         result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("false"));
         result.andExpect(MockMvcResultMatchers.jsonPath("$.error.status").value(403));
+        result.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 }
