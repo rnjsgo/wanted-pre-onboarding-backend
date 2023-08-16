@@ -20,6 +20,7 @@ public class BoardService {
     private final BoardJPARepository boardJPARepository;
 
     // 게시물 작성
+    @Transactional
     public void saveBoard(BoardRequest.SaveBoardDTO saveBoardDTO, User sessionUser){
         boardJPARepository.save(saveBoardDTO.toEntity(sessionUser));
     }
@@ -38,15 +39,16 @@ public class BoardService {
 
     // 게시물 조회 (id)
     public BoardResponse.GetBoardByIdDTO getBoardById(int id){
-        Board findBoard = boardJPARepository.findById(id).orElseThrow(
+        Board findBoard = boardJPARepository.findById((long)id).orElseThrow(
                 () -> new Exception404("해당 게시물을 찾을 수 없습니다 : "+id)
         );
         return new BoardResponse.GetBoardByIdDTO(findBoard);
     }
 
     // 게시물 수정
+    @Transactional
     public void updateBoard(BoardRequest.BoardUpdateDTO boardUpdateDTO , User sessionUser){
-        Board findBoard = boardJPARepository.findById(boardUpdateDTO.getId()).orElseThrow(
+        Board findBoard = boardJPARepository.findById((long)boardUpdateDTO.getId()).orElseThrow(
                 () -> new Exception404("해당 게시물을 찾을 수 없습니다 : "+ boardUpdateDTO.getId())
         );
 
@@ -57,8 +59,9 @@ public class BoardService {
     }
 
     // 게시물 삭제
+    @Transactional
     public void deleteBoard(int id , User sessionUser){
-        Board findBoard = boardJPARepository.findById(id).orElseThrow(
+        Board findBoard = boardJPARepository.findById((long)id).orElseThrow(
                 () -> new Exception404("해당 게시물을 찾을 수 없습니다 : "+ id)
         );
 

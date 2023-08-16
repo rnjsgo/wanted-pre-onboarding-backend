@@ -9,6 +9,6 @@ public interface BoardJPARepository extends JpaRepository<Board, Long> {
     List<Board> findAll();
 
 
-    Optional<Board> findById(int id);
+    Optional<Board> findById(Long id);
 
 }

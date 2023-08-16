@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 import wanted.onboarding.errors.Exception.Exception400;
 import wanted.onboarding.user.User;
 import wanted.onboarding.user.UserJPARepository;
 
 @RequiredArgsConstructor
+@Service
 public class CustomUserDetailsService implements UserDetailsService {
     private final UserJPARepository userJPARepository;
 
